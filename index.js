@@ -29,7 +29,7 @@ const validateUrl = async (url) => {
 app.get('/', function(req, res) {
   res.sendFile(process.cwd() + '/views/index.html');
 });
-let globalobj = {};
+const globalobj = ['index0'];
 // Your first API endpoint
 app.get('/api/hello', function(req, res) {
   res.json({ greeting: 'hello API' });
@@ -44,27 +44,18 @@ app.post('/api/shorturl', async (req, res, next) => {
   next();
 }, (req, res) => {
   let url = req.body.url;
-  if (globalobj[url] != null) {
-    res.json({ original_url: url, shorturl: +(globalobj[url]) });
-    return;
+  if (!globalobj.includes(url)) {
+    globalobj.push(url);
   }
-  let n = 1;
-  while (globalobj[n] != null) {
-    n += 1;
-  }
-  globalobj[String(n)] = url;
-  globalobj[url] = n;
-  res.json({ original_url: url, shorturl: +n });
+  res.json({ original_url: url, short_url: globalobj.indexOf(url) });
 });
 
 app.get('/api/shorturl/:num', (req, res) => {
   let num = req.params.num;
   if (isNaN(num)) {
     res.json({ "error": "Wrong format" });
-    return;
   }
-  num = +num;
-  if ((globalobj[num] != null)) {
+  else if ((globalobj[+num] != null)) {
     res.redirect(globalobj[num]);
   }
   else {
@@ -72,7 +63,7 @@ app.get('/api/shorturl/:num', (req, res) => {
   }
 });
 
-app.use((req, res) => {
+app.use('/*', (req, res) => {
   res.send('Not Found');
 });
 
